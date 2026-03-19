@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Weather Intelligence System</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>🌍 AI Weather Intelligence System</h1>
+    <h3 id="time"></h3>
+
+    <!-- City Form -->
+    <form method="POST">
+        <input type="text" name="city" placeholder="Enter city..." required>
+        <button type="submit">Check Weather</button>
+    </form>
+
+    <!-- Auto Location -->
+    <button onclick="getLocation()">📍 Use My Location</button>
+
+    {% if weather %}
+    <div class="card">
+        <h2>{{ weather.city }}</h2>
+        <p>🌡 Temperature: {{ weather.temp }}°C</p>
+        <p>🌦 Condition: {{ weather.weather }}</p>
+        <p>💧 Humidity: {{ weather.humidity }}%</p>
+        <h3>{{ risk }}</h3>
+    </div>
+
+    <!-- Chart -->
+    <canvas id="weatherChart"></canvas>
+
+    <!-- Map -->
+    <div id="map" style="height: 300px; margin-top:20px;"></div>
+    {% endif %}
+</div>
+
+<script>
+    // Real-time date & time
+    function updateTime() {
+        const now = new Date();
+        const options = { weekday: 'long' };
+        const day = now.toLocaleDateString(undefined, options);
+        document.getElementById("time").innerHTML =
+            day + " | " + now.toLocaleTimeString();
+    }
+    setInterval(updateTime, 1000);
+
+    // Auto location
+    function getLocation() {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            fetch(`/location?lat=${lat}&lon=${lon}`)
+            .then(res => res.json())
+            .then(data => location.reload());
+        });
+    }
+
+    {% if weather %}
+    // Chart.js temperature graph
+    const ctx = document.getElementById('weatherChart');
+    const weatherChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ["Now", "1 Hr", "2 Hr", "3 Hr", "4 Hr"],
+            datasets: [{
+                label: "Temperature (°C)",
+                data: [
+                    {{ weather.temp }},
+                    {{ weather.temp + 1 }},
+                    {{ weather.temp + 2 }},
+                    {{ weather.temp + 1 }},
+                    {{ weather.temp }}
+                ],
+                borderColor: "#00c6ff",
+                backgroundColor: "rgba(0,198,255,0.3)",
+                tension: 0.4
+            }]
+        }
+    });
+
+    // Leaflet.js Map
+    var map = L.map('map').setView([{{ weather.lat }}, {{ weather.lon }}], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data'
+    }).addTo(map);
+    L.marker([{{ weather.lat }}, {{ weather.lon }}]).addTo(map)
+        .bindPopup("Weather Location")
+        .openPopup();
+    {% endif %}
+</script>
+</body>
+</html>
