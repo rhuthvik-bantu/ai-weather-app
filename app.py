@@ -100,5 +100,8 @@ def location():
     location_weather = get_weather_by_coords(lat, lon)
     return jsonify({"status": "ok"})
 
+import os
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
