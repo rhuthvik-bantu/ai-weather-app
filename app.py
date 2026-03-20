@@ -79,17 +79,14 @@ def predict_risk_ai(weather_data):
 def index():
     weather_data = None
     risk = None
+
     if request.method == "POST":
         city = request.form.get("city")
         if city:
             weather_data = get_weather_by_city(city)
             if weather_data:
                 risk = predict_risk_ai(weather_data)
-    else:
-        global location_weather
-        weather_data = globals().get("location_weather", None)
-        if weather_data:
-            risk = predict_risk_ai(weather_data)
+
     return render_template("index.html", weather=weather_data, risk=risk)
 
 @app.route("/location")
